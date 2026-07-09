@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Opportunity Hub — HerSakhi{% endblock %}
+
+{% block content %}
+<canvas id="mesh-gradient-dashboard" class="mesh-gradient mesh-gradient--dashboard"></canvas>
+
+<section class="section" style="padding-top: 100px; min-height: 100vh;">
+  <div class="container" style="position: relative; z-index: 10;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <div>
+        <h1 class="heading-2">Opportunity Hub</h1>
+        <p class="body-lg" style="color: var(--text-secondary);">AI-matched internships, scholarships, and roles tailored for you.</p>
+      </div>
+      <div>
+        <a href="{% url 'dashboard:index' %}" class="btn-primary" style="background: rgba(255,255,255,0.1); color: white;">Back to Dashboard</a>
+      </div>
+    </div>
+
+    <div class="glass-card" style="padding: 2rem; max-width: 800px; margin: 0 auto;">
+      
+      <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 1.5rem;">
+          <div>
+            <label for="skills" class="label">Your Skills</label>
+            <input type="text" id="skills" placeholder="e.g. React, Node.js, Public Speaking" style="width: 100%; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; font-family: 'Inter', sans-serif;" />
+          </div>
+          <div>
+            <label for="preferences" class="label">Job Preferences</label>
+            <input type="text" id="preferences" placeholder="e.g. Remote Internships, Open Source, Scholarships" style="width: 100%; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; font-family: 'Inter', sans-serif;" />
+          </div>
+      </div>
+      
+      <button class="btn-primary magnetic-btn" onclick="findOpportunities()" style="width: 100%; justify-content: center;">
+        <span>Find Matches</span>
+      </button>
+
+      <div id="resultsArea" style="margin-top: 2rem; display: none;">
+        <h3 class="heading-3" style="margin-bottom: 1rem; color: var(--brand-primary);">Top Matches</h3>
+        <div id="opportunitiesList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            <!-- Generated opportunities will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+async function findOpportunities() {
+    const skills = document.getElementById('skills').value;
+    const preferences = document.getElementById('preferences').value;
+    
+    if (!skills) return alert('Please enter your skills.');
+    
+    // Simple UI feedback
+    const btn = document.querySelector('button[onclick="findOpportunities()"] span');
+    const originalText = btn.innerText;
+    btn.innerText = 'Searching...';
+    
+    try {
+        const response = await fetch("{% url 'opportunities:match' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ skills: skills, preferences: preferences })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('resultsArea').style.display = 'block';
+            
+            const optList = document.getElementById('opportunitiesList');
+            optList.innerHTML = '';
+            
+            data.data.opportunities.forEach((opt) => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 0.5rem;';
+                
+                const title = document.createElement('h4');
+                title.style.cssText = 'color: white; font-size: 1.1rem; margin: 0;';
+                title.innerText = opt.title;
+                
+                const type = document.createElement('span');
+                type.style.cssText = 'color: var(--brand-accent); font-size: 0.85rem; font-weight: 500;';
+                type.innerText = opt.company_or_type;
+                
+                const desc = document.createElement('p');
+                desc.style.cssText = 'color: var(--text-secondary); line-height: 1.5; font-size: 0.95rem; margin-top: 0.5rem;';
+                desc.innerText = opt.why_it_fits;
+                
+                card.appendChild(title);
+                card.appendChild(type);
+                card.appendChild(desc);
+                optList.appendChild(card);
+            });
+        } else {
+            alert('AI Analysis failed: ' + data.message);
+        }
+    } catch (e) {
+        alert('Error connecting to AI service.');
+    } finally {
+        btn.innerText = originalText;
+    }
+}
+</script>
+{% endblock %}

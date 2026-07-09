@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}AI Roadmap — HerSakhi{% endblock %}
+
+{% block content %}
+<canvas id="mesh-gradient-dashboard" class="mesh-gradient mesh-gradient--dashboard"></canvas>
+
+<section class="section" style="padding-top: 100px; min-height: 100vh;">
+  <div class="container" style="position: relative; z-index: 10;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <div>
+        <h1 class="heading-2">AI Career Roadmap</h1>
+        <p class="body-lg" style="color: var(--text-secondary);">Generate a step-by-step personalized plan to reach your goals.</p>
+      </div>
+      <div>
+        <a href="{% url 'dashboard:index' %}" class="btn-primary" style="background: rgba(255,255,255,0.1); color: white;">Back to Dashboard</a>
+      </div>
+    </div>
+
+    <div class="glass-card" style="padding: 2rem; max-width: 800px; margin: 0 auto;">
+      
+      <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 1.5rem;">
+          <div>
+            <label for="careerGoal" class="label">Career Goal</label>
+            <input type="text" id="careerGoal" placeholder="e.g. Become a Senior Frontend Engineer" style="width: 100%; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; font-family: 'Inter', sans-serif;" />
+          </div>
+          <div>
+            <label for="timeframe" class="label">Timeframe</label>
+            <select id="timeframe" style="width: 100%; padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; font-family: 'Inter', sans-serif;">
+              <option value="3 months">3 Months</option>
+              <option value="6 months" selected>6 Months</option>
+              <option value="1 year">1 Year</option>
+            </select>
+          </div>
+      </div>
+      
+      <button class="btn-primary magnetic-btn" onclick="generateRoadmap()" style="width: 100%; justify-content: center;">
+        <span>Generate Roadmap</span>
+      </button>
+
+      <div id="resultsArea" style="margin-top: 2rem; display: none;">
+        <h3 class="heading-3" style="margin-bottom: 1rem; color: var(--brand-primary);">Your Roadmap</h3>
+        <div id="milestonesList" style="display: flex; flex-direction: column; gap: 1rem;">
+            <!-- Generated milestones will be inserted here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+async function generateRoadmap() {
+    const goal = document.getElementById('careerGoal').value;
+    const timeframe = document.getElementById('timeframe').value;
+    
+    if (!goal) return alert('Please enter a career goal.');
+    
+    // Simple UI feedback
+    const btn = document.querySelector('button[onclick="generateRoadmap()"] span');
+    const originalText = btn.innerText;
+    btn.innerText = 'Generating...';
+    
+    try {
+        const response = await fetch("{% url 'roadmap:generate' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ career_goal: goal, timeframe: timeframe })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('resultsArea').style.display = 'block';
+            
+            const msList = document.getElementById('milestonesList');
+            msList.innerHTML = '';
+            
+            data.data.milestones.forEach((ms, idx) => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05); position: relative;';
+                
+                const title = document.createElement('h4');
+                title.style.cssText = 'margin-bottom: 0.5rem; color: var(--brand-accent); font-size: 1.1rem;';
+                title.innerText = `Step ${idx + 1}: ${ms.title}`;
+                
+                const desc = document.createElement('p');
+                desc.style.cssText = 'color: var(--text-secondary); line-height: 1.5; font-size: 0.95rem;';
+                desc.innerText = ms.description;
+                
+                card.appendChild(title);
+                card.appendChild(desc);
+                msList.appendChild(card);
+            });
+        } else {
+            alert('AI Analysis failed: ' + data.message);
+        }
+    } catch (e) {
+        alert('Error connecting to AI service.');
+    } finally {
+        btn.innerText = originalText;
+    }
+}
+</script>
+{% endblock %}

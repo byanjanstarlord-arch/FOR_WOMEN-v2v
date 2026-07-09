@@ -1,0 +1,191 @@
+<USER_REQUEST>
+ROLE
+You are a Principal Product Architect, Senior Full Stack Engineer, Senior UI/UX Designer, Frontend Architect, Django Backend Engineer, AI Integration Engineer, and System Designer.
+
+You are continuing development of an existing project called "HerSakhi".
+
+You are NOT creating a new project.
+
+You are extending an existing codebase while preserving its architecture, styling, animations, responsiveness and design language.
+________________________________________
+CONTEXT
+The Landing Page (Part 1) has already been completed.
+
+The landing page contains:
+
+â€¢ HTML
+â€¢ CSS
+â€¢ JavaScript
+â€¢ Three.js Scene
+â€¢ GSAP Animations
+â€¢ Lenis Smooth Scroll
+â€¢ Design System
+â€¢ Typography
+â€¢ Color Palette
+â€¢ Responsive Layout
+â€¢ Navigation
+â€¢ Hero Section
+â€¢ Footer
+â€¢ Logo Integration
+â€¢ Glassmorphism Components
+â€¢ UI Components
+â€¢ CSS Variables
+
+
+.
+________________________________________
+PROJECT CONTINUATION
+
+The Landing Page created in Part 1 already exists.
+
+It includes HTML, CSS, JavaScript, animations, Three.js, GSAP, Lenis, components, logo integration, styling and responsive design.
+
+DO NOT recreate the landing page.
+
+DO NOT generate duplicate files.
+
+Convert and integrate the existing landing page into a single Django project using Django Templates and Static Files.
+
+Reuse the existing HTML, CSS, JavaScript and assets exactly as much as possible.
+
+Continue development from those files instead of replacing them.
+
+The final application must feel like one continuous product with a single design system and codebase.
+TECH STACK
+Frontend
+
+HTML5
+
+CSS3
+
+Vanilla JavaScript
+
+Three.js
+
+GSAP
+
+ScrollTrigger
+
+Lenis
+
+Lucide Icons
+
+Google Fonts
+
+Backend
+
+Django
+
+Django REST Framework
+
+Database
+
+Supabase PostgreSQL
+
+Authentication
+
+Django Authentication
+
+AI
+
+OpenRouter API
+
+Primary Model
+
+Qwen
+
+Fallback Models
+
+DeepSeek
+
+Llama
+
+No React.
+
+No Bootstrap.
+
+No Tailwind.
+
+No NextJS.
+
+No hardcoded fronten
+<truncated 12773 bytes>
+.
+
+The experience should remain consistent from Landing Page to Dashboard to every internal feature.
+
+Nothing should break the visual language established in Part 1.
+
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+PROJECT SETUP
+
+Automatically generate
+
+.env
+
+.env.example
+
+requirements.txt
+
+.gitignore
+
+README.md
+
+The README should explain
+
+â€¢ Environment Setup
+
+â€¢ Installing Dependencies
+
+â€¢ Running Django
+
+â€¢ Adding API Keys
+
+â€¢ Database Migration
+
+â€¢ Starting the Development Server
+
+The project should be executable immediately after
+
+1. Installing dependencies
+
+2. Creating the database
+
+3. Adding API keys to the .env file
+
+without modifying any source code.
+
+
+Rules:
+Never regenerate existing code if it already exists.
+
+Always extend the current Django project.
+
+Reuse existing HTML, CSS, JavaScript, animations and components whenever possible.
+
+Never create duplicate stylesheets.
+
+Never duplicate JavaScript.
+
+Never duplicate UI components.
+
+Maintain one clean Django codebase.
+
+Every new feature must integrate seamlessly with the existing project structure.\
+Treat this project as if you have joined an existing production codebase.
+
+Do not rebuild what already exists.
+
+Carefully integrate every new feature into the existing Django project while preserving the established UI, UX, architecture, animations, responsiveness, code quality, and design system.
+
+The final result should feel like one professionally engineered applicationâ€”not a collection of independently generated pages.
+
+
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-07-09T03:44:45+05:30.
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from None to Gemini 3.1 Pro (High). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>
