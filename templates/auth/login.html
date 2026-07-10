@@ -4,45 +4,67 @@
 {% block title %}Log In — HerSakhi{% endblock %}
 
 {% block content %}
-<canvas id="mesh-gradient-hero" class="mesh-gradient mesh-gradient--hero"></canvas>
+<section class="auth-page">
+  <div class="auth-right">
+    <div class="auth-card glass-card">
+      <div class="auth-card-top">
+        <div class="auth-brand-circle">
+          <img src="{% static 'images/logo.png' %}" alt="HerSakhi Icon" />
+        </div>
+        <div>
+          <h2>Welcome Back</h2>
+          <p>Login to continue your journey with <span class="auth-highlight">HerSakhi</span>.</p>
+        </div>
+      </div>
 
-<section class="section" style="min-height: 100vh; display: flex; align-items: center; justify-content: center;">
-  <div class="container" style="max-width: 450px; width: 100%; position: relative; z-index: 10;">
-    <div class="glass-card" style="padding: 2.5rem; text-align: center;">
-      <a href="{% url 'core:landing' %}" style="display: inline-block; margin-bottom: 1.5rem;">
-        <img src="{% static 'images/logo.png' %}" alt="HerSakhi Logo" style="height: 48px;" />
-      </a>
-      <h2 class="heading-2" style="margin-bottom: 0.5rem;">Welcome Back</h2>
-      <p class="body-lg" style="margin-bottom: 2rem; color: var(--text-secondary);">Log in to continue your journey.</p>
-      
-      <form method="POST" action="{% url 'accounts:login' %}" style="display: flex; flex-direction: column; gap: 1.2rem; text-align: left;">
-        {% if error %}<p style="color: #ff4d4d; margin-bottom: 0.5rem; text-align: center;">{{ error }}</p>{% endif %}
+      <div class="auth-tabs">
+        <span class="auth-tab auth-tab--active">Login</span>
+        <a href="{% url 'accounts:signup' %}" class="auth-tab">Sign Up</a>
+      </div>
+
+      <form method="POST" action="{% url 'accounts:login' %}" class="auth-form">
+        {% if error %}
+          <p class="auth-error">{{ error }}</p>
+        {% endif %}
         {% csrf_token %}
-        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-          <label for="email" class="label">Email Address</label>
-          <input type="email" id="email" name="email" required style="padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; font-family: 'Inter', sans-serif;" />
+
+        <div class="auth-field">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required placeholder="Enter your email address" />
         </div>
-        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-          <div style="display: flex; justify-content: space-between;">
-            <label for="password" class="label">Password</label>
-            <a href="#" class="caption" style="color: var(--brand-accent);">Forgot Password?</a>
+
+        <div class="auth-field">
+          <div class="auth-field-label-row">
+            <label for="password">Password</label>
+            <a href="#" class="auth-forgot">Forgot Password?</a>
           </div>
-          <input type="password" id="password" name="password" required style="padding: 1rem; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; font-family: 'Inter', sans-serif;" />
+          <input type="password" id="password" name="password" required placeholder="Enter your password" />
         </div>
-        
-        <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-          <input type="checkbox" id="remember" name="remember" />
-          <label for="remember" class="body-sm" style="color: var(--text-secondary);">Keep me logged in</label>
+
+        <div class="auth-actions-row">
+          <label class="auth-checkbox">
+            <input type="checkbox" id="remember" name="remember" />
+            <span>Remember me</span>
+          </label>
         </div>
-        
-        <button type="submit" class="btn-primary" style="margin-top: 1rem; width: 100%; justify-content: center;">
-          Log In
-        </button>
+
+        <button type="submit" class="btn-primary auth-submit">Login</button>
       </form>
-      
-      <p class="body-sm" style="margin-top: 2rem; color: var(--text-secondary);">
-        Don't have an account? <a href="{% url 'accounts:signup' %}" style="color: var(--brand-primary); font-weight: 500;">Sign up</a>
-      </p>
+
+      <div class="auth-divider"><span>or continue with</span></div>
+
+      <div class="auth-socials">
+        <button type="button" class="btn-glass auth-social-btn">
+          <span class="auth-social-icon">G</span>
+          Google
+        </button>
+        <button type="button" class="btn-glass auth-social-btn">
+          <span class="auth-social-icon">M</span>
+          Microsoft
+        </button>
+      </div>
+
+      <p class="auth-note">Your data is secure and private with us.</p>
     </div>
   </div>
 </section>
