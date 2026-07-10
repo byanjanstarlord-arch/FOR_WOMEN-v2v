@@ -131,9 +131,21 @@
                     <span class="badge">3</span>
                 </a>
                 <div class="header__profile">
-                    <img src="https://i.pravatar.cc/150?img=5" alt="Profile">
+                    <div class="header__profile-avatar">
+                        {% if user.first_name or user.last_name %}
+                            {{ user.first_name|slice:":1"|upper }}{% if user.last_name %}{{ user.last_name|slice:":1"|upper }}{% endif %}
+                        {% else %}
+                            {{ user.username|slice:":2"|upper }}
+                        {% endif %}
+                    </div>
                     <div class="header__profile-info">
-                        <span class="header__profile-name">{{ user.first_name|default:"Ananya" }} {{ user.last_name|default:"Singh" }}</span>
+                        <span class="header__profile-name">
+                            {% if user.first_name or user.last_name %}
+                                {{ user.first_name }}{% if user.last_name %} {{ user.last_name }}{% endif %}
+                            {% else %}
+                                {{ user.username }}
+                            {% endif %}
+                        </span>
                         <span class="header__profile-role">Student</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>

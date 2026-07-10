@@ -426,9 +426,9 @@ button {
   place-items: center;
 }
 
-.auth-brand-circle img {
-  width: 36px;
-  height: 36px;
+..auth-brand-circle img {
+  width: 48px;
+  height: 48px;
 }
 
 .auth-right h2 {
