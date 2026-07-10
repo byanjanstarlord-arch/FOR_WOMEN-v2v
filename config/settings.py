@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'apps.skill_gap',
     'apps.opportunities',
     'apps.ai_mentor',
+    'apps.achievements',
 ]
 
 MIDDLEWARE = [

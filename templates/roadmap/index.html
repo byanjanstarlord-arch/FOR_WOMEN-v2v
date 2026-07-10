@@ -1124,7 +1124,7 @@
         const timeframe = document.getElementById('inputTimeframe').value;
 
         if (!goal) {
-            alert("Please enter a target role or career goal.");
+            showToast("Please enter a target role or career goal.", "error");
             return;
         }
 
@@ -1149,10 +1149,10 @@
                 roadmapData = resData.data;
                 renderRoadmap(roadmapData);
             } else {
-                alert("Error: " + resData.message);
+                showToast("Error: " + resData.message, "error");
             }
         } catch(e) {
-            alert("Network error: Failed to connect to AI Career Planner.");
+            showToast("Network error: Failed to connect to AI Career Planner.", "error");
         } finally {
             document.getElementById('loading-overlay-generation').style.display = 'none';
         }
@@ -1160,7 +1160,7 @@
 
     // Export Roadmap stub
     function exportRoadmap() {
-        alert("Preparing your career roadmap PDF export... Your download will start shortly!");
+        showToast("Preparing your career roadmap PDF export... Your download will start shortly!", "success");
     }
 
     // Main Renderer function

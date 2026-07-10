@@ -3,11 +3,11 @@ from django.conf import settings
 
 class UserStat(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='dashboard_stat')
-    career_readiness = models.IntegerField(default=85)
-    skills_strength = models.IntegerField(default=78)
-    profile_progress = models.IntegerField(default=92)
-    ai_score = models.IntegerField(default=88)
-    day_streak = models.IntegerField(default=12)
+    career_readiness = models.IntegerField(default=0)
+    skills_strength = models.IntegerField(default=0)
+    profile_progress = models.IntegerField(default=0)
+    ai_score = models.IntegerField(default=0)
+    day_streak = models.IntegerField(default=0)
     
     def __str__(self):
         return f"Stats for {self.user.username}"
@@ -41,6 +41,17 @@ class AIInsight(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+    @staticmethod
+    def placeholder_titles():
+        return [
+            'Your communication skills are strong!',
+            'Data Analysis is a high growth skill for you.',
+            "You're consistent! 🔥",
+        ]
+
+    def is_sample(self):
+        return self.title in self.placeholder_titles()
+
     def __str__(self):
         return self.title
 
@@ -57,5 +68,43 @@ class RecommendedOpportunity(models.Model):
     class Meta:
         ordering = ['created_at']
 
+    @staticmethod
+    def sample_companies():
+        return ['Microsoft', 'Google', 'SmartBridge']
+
+    def is_sample(self):
+        normalized_title = self.title.lower()
+        return (
+            self.company in self.sample_companies() and
+            ('intern' in normalized_title or 'virtual' in normalized_title)
+        )
+
     def __str__(self):
         return f"{self.title} at {self.company}"
+
+class Notification(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=150)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    link = models.CharField(max_length=200, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+class Achievement(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='achievements')
+    title = models.CharField(max_length=100)
+    description = models.CharField(max_length=200)
+    icon = models.CharField(max_length=50) # e.g. icon name
+    unlocked_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-unlocked_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"

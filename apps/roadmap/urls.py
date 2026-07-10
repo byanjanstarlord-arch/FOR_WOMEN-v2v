@@ -4,6 +4,7 @@ from . import views
 app_name = 'roadmap'
 
 urlpatterns = [
-    path('', views.index_view, name='index'),
-    path('api/generate/', views.RoadmapGenerateView.as_view(), name='generate'),
+    path('', views.index, name='index'),
+    path('generate/', views.generate_roadmap, name='generate'),
+    path('mark-milestone/', views.mark_milestone, name='mark_milestone'),
 ]

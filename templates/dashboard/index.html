@@ -9,12 +9,12 @@
     <!-- Welcome Section -->
     <div class="welcome-row">
         <div>
-            <h1>Good Morning, <span>{{ user.first_name|default:"Ananya" }}!</span> 👋</h1>
+            <h1>Good Morning, <span>{{ user.first_name|default:user.username }}!</span> 👋</h1>
             <p>Let's make today productive and closer to your dream career.</p>
         </div>
         <div class="streak-badge">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="2"><path d="M12 2c0 0-5 6-5 11a5 5 0 0 0 10 0c0-5-5-11-5-11Z"/></svg>
-            {{ stats.day_streak }} <span>Day Streak</span>
+            {{ stats.day_streak|default:0 }} <span>Day Streak</span>
         </div>
     </div>
 
@@ -24,8 +24,12 @@
         <div class="app-card">
             <div class="stat-header">Career Readiness</div>
             <div class="stat-value">{{ stats.career_readiness }}%</div>
-            <div class="stat-sub success">Excellent</div>
-            <!-- Dummy Chart -->
+            <div class="stat-sub success">
+                {% if stats.career_readiness >= 80 %}Excellent
+                {% elif stats.career_readiness >= 50 %}On Track
+                {% else %}Needs Focus
+                {% endif %}
+            </div>
             <svg class="stat-chart" viewBox="0 0 100 40" preserveAspectRatio="none">
                 <path d="M0 30 L20 25 L40 28 L60 15 L80 20 L100 5" fill="none" stroke="var(--accent-violet)" stroke-width="2"/>
                 <circle cx="0" cy="30" r="3" fill="var(--accent-violet)"/>
@@ -44,15 +48,19 @@
             </svg>
             <div style="font-size: 0.75rem; color: var(--success); margin-top: 0.5rem; display: flex; align-items:center; gap: 4px;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                12% this week
+                {{ roadmap_completion }}% roadmap complete
             </div>
         </div>
         
         <div class="app-card">
             <div class="stat-header">Skills Strength</div>
             <div class="stat-value">{{ stats.skills_strength }}%</div>
-            <div class="stat-sub primary">On Track</div>
-            <!-- Dummy Chart -->
+            <div class="stat-sub primary">
+                {% if stats.skills_strength >= 80 %}Highly Skilled
+                {% elif stats.skills_strength >= 50 %}Growing
+                {% else %}Needs Development
+                {% endif %}
+            </div>
             <svg class="stat-chart" viewBox="0 0 100 40" preserveAspectRatio="none">
                 <path d="M0 35 L20 32 L40 35 L60 25 L80 30 L100 10" fill="none" stroke="var(--accent-violet)" stroke-width="2"/>
                 <circle cx="0" cy="35" r="3" fill="var(--accent-violet)"/>
@@ -65,15 +73,19 @@
             </svg>
             <div style="font-size: 0.75rem; color: var(--success); margin-top: 0.5rem; display: flex; align-items:center; gap: 4px;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                8% this week
+                {{ tech_count }} technical, {{ soft_count }} soft skills
             </div>
         </div>
         
         <div class="app-card">
             <div class="stat-header">Profile Progress</div>
             <div class="stat-value">{{ stats.profile_progress }}%</div>
-            <div class="stat-sub success">Outstanding</div>
-            <!-- Dummy Chart -->
+            <div class="stat-sub success">
+                {% if stats.profile_progress >= 80 %}Outstanding
+                {% elif stats.profile_progress >= 50 %}Progressing
+                {% else %}Getting Started
+                {% endif %}
+            </div>
             <svg class="stat-chart" viewBox="0 0 100 40" preserveAspectRatio="none">
                 <path d="M0 30 L20 35 L40 25 L60 30 L80 15 L100 5" fill="none" stroke="var(--success)" stroke-width="2"/>
                 <circle cx="0" cy="30" r="3" fill="var(--success)"/>
@@ -92,7 +104,7 @@
             </svg>
             <div style="font-size: 0.75rem; color: var(--success); margin-top: 0.5rem; display: flex; align-items:center; gap: 4px;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                15% this week
+                {{ stats.profile_progress }}% complete
             </div>
         </div>
 
@@ -100,11 +112,16 @@
             <div class="stat-header">AI Score</div>
             <div style="position:relative; width: 90px; height: 90px; border-radius: 50%; border: 6px solid var(--app-bg); border-top-color: var(--purple-bg); border-right-color: var(--accent-violet); border-bottom-color: var(--accent-violet); display:flex; flex-direction:column; align-items:center; justify-content:center;">
                 <span style="font-size: 1.5rem; font-weight: 700;">{{ stats.ai_score }}</span>
-                <span style="font-size: 0.6rem; color: var(--success); font-weight: 600;">Great</span>
+                <span style="font-size: 0.6rem; color: var(--success); font-weight: 600;">
+                    {% if stats.ai_score >= 80 %}Great
+                    {% elif stats.ai_score >= 60 %}Good
+                    {% else %}Needs Improvement
+                    {% endif %}
+                </span>
             </div>
             <div style="font-size: 0.75rem; color: var(--success); margin-top: 0.5rem; display: flex; align-items:center; gap: 4px;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                10 points
+                {% if latest_resume %}Based on latest resume score{% else %}Upload a resume to improve your AI score{% endif %}
             </div>
         </div>
 
@@ -116,16 +133,16 @@
                     Today's Mission
                 </div>
                 <div class="mission-content">
-                    <h3>Improve Resume</h3>
-                    <p>Make your resume AI-optimized</p>
+                    <h3>{{ mission_title }}</h3>
+                    <p>{{ mission_text }}</p>
                 </div>
             </div>
             <div>
                 <div class="mission-progress">
-                    <div class="mission-progress-bar"><div class="mission-progress-fill" style="width: 60%;"></div></div>
-                    <div style="text-align: right; font-size: 0.75rem; opacity: 0.9;">60%</div>
+                    <div class="mission-progress-bar"><div class="mission-progress-fill" style="width: {{ mission_progress }}%;"></div></div>
+                    <div style="text-align: right; font-size: 0.75rem; opacity: 0.9;">{{ mission_progress }}%</div>
                 </div>
-                <button class="mission-btn" onclick="window.location.href='{% url 'resume_lab:index' %}'">
+                <button class="mission-btn" onclick="window.location.href='{{ mission_url }}'">
                     Continue Mission
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </button>
@@ -165,7 +182,11 @@
                     </div>
                 </div>
                 {% empty %}
-                <p>No roadmap created yet.</p>
+                <div class="empty-state-card">
+                    <h4>Roadmap not generated yet</h4>
+                    <p>Generate a career roadmap to get a clear step-by-step plan tailored to your skills.</p>
+                    <button class="empty-state-btn" onclick="window.location.href='{% url 'roadmap:index' %}'">Create Roadmap</button>
+                </div>
                 {% endfor %}
             </div>
         </div>
@@ -195,7 +216,11 @@
                     <div class="insight-time">{{ insight.time_ago }}</div>
                 </div>
                 {% empty %}
-                <p>No insights generated yet.</p>
+                <div class="empty-state-card">
+                    <h4>No insights yet</h4>
+                    <p>Complete your assessment or update your profile so AI can give you smarter insights.</p>
+                    <button class="empty-state-btn" onclick="window.location.href='{% url 'assessment:index' %}'">Take Assessment</button>
+                </div>
                 {% endfor %}
             </div>
         </div>
@@ -224,7 +249,11 @@
                     </div>
                 </div>
                 {% empty %}
-                <p>No opportunities recommended yet.</p>
+                <div class="empty-state-card">
+                    <h4>No opportunities found yet</h4>
+                    <p>Update your career preferences so we can surface the best matches for you.</p>
+                    <button class="empty-state-btn" onclick="window.location.href='{% url 'opportunities:index' %}'">Explore Opportunities</button>
+                </div>
                 {% endfor %}
             </div>
         </div>

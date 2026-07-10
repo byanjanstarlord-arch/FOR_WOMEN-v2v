@@ -4,6 +4,6 @@ from . import views
 app_name = 'opportunities'
 
 urlpatterns = [
-    path('', views.index_view, name='index'),
-    path('api/match/', views.OpportunityMatchView.as_view(), name='match'),
+    path('', views.index, name='index'),
+    path('match/', views.fetch_opportunities, name='match'),
 ]

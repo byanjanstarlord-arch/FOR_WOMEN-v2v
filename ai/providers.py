@@ -6,31 +6,38 @@ from .exceptions import AIProviderException
 
 logger = logging.getLogger(__name__)
 
+from dotenv import load_dotenv
+
 class OpenRouterProvider:
     def __init__(self):
+        # Force reload environment variables to catch .env updates without server restart
+        load_dotenv(settings.BASE_DIR / '.env', override=True)
+        
         self.api_key = os.getenv('OPENROUTER_API_KEY')
         self.url = "https://openrouter.ai/api/v1/chat/completions"
-        self.primary_model = "qwen/qwen-2.5-coder-32b-instruct"
-        self.fallback_model = "meta-llama/llama-3.1-8b-instruct"
+        self.model = os.getenv('OPENROUTER_MODEL', "openrouter/free")
+        self.http_referer = os.getenv('OPENROUTER_HTTP_REFERER', "http://localhost:8000")
+        self.title = os.getenv('OPENROUTER_TITLE', "NagarNetra")
+        self.reasoning_enabled = os.getenv('OPENROUTER_REASONING_ENABLED', "true").lower() == "true"
         
     def generate(self, messages, use_fallback=False, temperature=0.7):
         if not self.api_key:
             raise AIProviderException("OPENROUTER_API_KEY is not configured")
             
-        model = self.fallback_model if use_fallback else self.primary_model
+        # We ignore use_fallback now since we want to strictly use the ENV model
+        model = self.model
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "HTTP-Referer": "http://localhost:8000",
-            "X-Title": "HerSakhi",
+            "HTTP-Referer": self.http_referer,
+            "X-Title": self.title,
             "Content-Type": "application/json"
         }
         
         payload = {
             "model": model,
             "messages": messages,
-            "temperature": temperature,
-            "response_format": {"type": "json_object"}
+            "temperature": temperature
         }
         
         try:

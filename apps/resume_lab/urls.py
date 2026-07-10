@@ -4,6 +4,6 @@ from . import views
 app_name = 'resume_lab'
 
 urlpatterns = [
-    path('', views.index_view, name='index'),
-    path('api/analyze/', views.ResumeAnalyzeView.as_view(), name='analyze'),
+    path('', views.index, name='index'),
+    path('upload/', views.upload_resume, name='upload_resume'),
 ]

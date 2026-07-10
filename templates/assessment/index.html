@@ -624,35 +624,30 @@ async function submitAssessment() {
     }
     
     try {
-        const response = await fetch("{% url 'assessment:analyze' %}", {
+        const payload = {
+            education_level: answers[1] || '',
+            degree: answers[2] || '',
+            graduation_year: answers[3] || '',
+            current_status: answers[4] || '',
+            dream_role: answers[16] || '',
+            technical_skills: [answers[11] || '', answers[13] || '', answers[14] || ''],
+            learning_style: [answers[4] || ''],
+            career_obstacles: answers[20] || ''
+        };
+
+        const response = await fetch("{% url 'assessment:submit_assessment' %}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': '{{ csrf_token }}'
             },
-            body: JSON.stringify({ answers: answers })
+            body: JSON.stringify(payload)
         });
         
         const data = await response.json();
         
         if (data.success) {
-            document.getElementById('careerScore').innerText = data.data.career_score || 88;
-            
-            const sList = document.getElementById('strengthsList');
-            sList.innerHTML = '';
-            (data.data.strengths || ["Technical foundations", "Logical thinking", "Problem solving"]).forEach(s => {
-                const li = document.createElement('li');
-                li.innerText = s;
-                sList.appendChild(li);
-            });
-            
-            const iList = document.getElementById('improvementsList');
-            iList.innerHTML = '';
-            (data.data.areas_for_improvement || ["System architecture design", "Cloud engineering", "Collaborative workflows"]).forEach(imp => {
-                const li = document.createElement('li');
-                li.innerText = imp;
-                iList.appendChild(li);
-            });
+            iList.appendChild(li);
             
             // Open Modal
             document.getElementById('resultsModal').style.display = 'flex';
@@ -660,16 +655,7 @@ async function submitAssessment() {
             alert('AI Analysis failed: ' + data.message);
         }
     } catch (e) {
-        // Fallback mock results if API fails or offline
-        document.getElementById('careerScore').innerText = "88";
-        
-        const sList = document.getElementById('strengthsList');
-        sList.innerHTML = '<li>Strong problem solving and software architecture foundations.</li><li>Excellent collaborative spirit and team management interest.</li><li>Solid database and React project experience.</li>';
-        
-        const iList = document.getElementById('improvementsList');
-        iList.innerHTML = '<li>Expand knowledge in cloud platforms (AWS/Azure).</li><li>Deepen understanding of machine learning algorithms.</li><li>Enhance system design skills for scale.</li>';
-        
-        document.getElementById('resultsModal').style.display = 'flex';
+        alert('Analysis failed due to network error.');
     } finally {
         analyzeBtn.disabled = false;
         analyzeBtn.style.opacity = '1';

@@ -1,55 +1,171 @@
 from django.shortcuts import render
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from .models import UserStat, RoadmapPhase, AIInsight, RecommendedOpportunity
-from django.utils import timezone
+from django.urls import reverse
+from .models import UserStat, AIInsight, Notification, Achievement, RecommendedOpportunity
+from apps.opportunities.models import Opportunity
+from apps.roadmap.models import CareerRoadmap
+from apps.assessment.models import AssessmentResponse
+from apps.resume_lab.models import Resume
 
-def seed_initial_user_data(user):
-    # Create Stats
-    if not hasattr(user, 'dashboard_stat'):
-        UserStat.objects.create(
-            user=user,
-            career_readiness=85,
-            skills_strength=78,
-            profile_progress=92,
-            ai_score=88,
-            day_streak=12
-        )
+def update_user_stats(user):
+    stat, _ = UserStat.objects.get_or_create(user=user)
     
-    # Create Roadmap if empty
-    if not user.roadmap_phases.exists():
-        RoadmapPhase.objects.bulk_create([
-            RoadmapPhase(user=user, title="Foundation", description="Build strong fundamentals", status="Completed", order=1),
-            RoadmapPhase(user=user, title="Skill Building", description="Learn in-demand skills", status="In Progress", order=2),
-            RoadmapPhase(user=user, title="Real World Projects", description="Apply your knowledge", status="Upcoming", order=3),
-            RoadmapPhase(user=user, title="Career Launch", description="Get ready for opportunities", status="Upcoming", order=4),
-        ])
+    # 1. Profile Progress
+    profile_progress = 0
+    if hasattr(user, 'profile'):
+        profile = user.profile
+        if profile.dream_role:
+            profile_progress += 20
+        if profile.technical_skills:
+            profile_progress += 20
+        if profile.resume_text:
+            profile_progress += 20
+
+    # Assessment check
+    if AssessmentResponse.objects.filter(user=user).exists():
+        profile_progress += 30
+        
+    stat.profile_progress = min(profile_progress, 100)
     
-    # Create Insights if empty
-    if not user.ai_insights.exists():
-        AIInsight.objects.bulk_create([
-            AIInsight(user=user, title="Your communication skills are strong!", message="Boost them further for leadership roles.", time_ago="2h ago", icon_type="growth"),
-            AIInsight(user=user, title="Data Analysis is a high growth skill for you.", message="Consider learning SQL and Python.", time_ago="1d ago", icon_type="trend"),
-            AIInsight(user=user, title="You're consistent! 🔥", message="Keep up your daily learning streak.", time_ago="2d ago", icon_type="streak"),
-        ])
+    # 2. Skills Strength
+    skills_strength = 0
+    if hasattr(user, 'profile'):
+        profile = user.profile
+        skills_strength += min(len(profile.technical_skills) * 5, 60)
+        skills_strength += min(len(profile.soft_skills) * 5, 20)
+    stat.skills_strength = min(skills_strength, 100)
     
-    # Create Opportunities if empty
-    if not user.opportunities.exists():
-        RecommendedOpportunity.objects.bulk_create([
-            RecommendedOpportunity(user=user, title="Data Analyst Intern", company="Microsoft", location="Bangalore, India", type="Internship", time_left="2d left", logo_url="https://logo.clearbit.com/microsoft.com"),
-            RecommendedOpportunity(user=user, title="Product Management Intern", company="Google", location="Remote", type="Internship", time_left="5d left", logo_url="https://logo.clearbit.com/google.com"),
-            RecommendedOpportunity(user=user, title="AI/ML Virtual Internship", company="SmartBridge", location="Remote", type="Virtual", time_left="7d left", logo_url="https://logo.clearbit.com/smartbridge.com"),
-        ])
+    # 3. AI Score
+    latest_resume = Resume.objects.filter(user=user).first()
+    ai_score = latest_resume.ats_score if latest_resume else 0
+    
+    # 4. Career Readiness
+    roadmap = CareerRoadmap.objects.filter(user=user).first()
+    roadmap_completion = roadmap.completion_percentage if roadmap else 0
+    stat.career_readiness = int((stat.profile_progress + stat.skills_strength + roadmap_completion) / 3)
+    
+    stat.save()
+    return stat
 
 @login_required
 def index_view(request):
     """Render the main dashboard."""
-    seed_initial_user_data(request.user)
-    
+    stat = update_user_stats(request.user)
+    profile = getattr(request.user, 'profile', None)
+
+    # Get active roadmap if exists
+    roadmap = CareerRoadmap.objects.filter(user=request.user).first()
+    roadmap_phases = []
+    roadmap_completion = roadmap.completion_percentage if roadmap else 0
+    if roadmap:
+        milestones = list(roadmap.milestones.all())
+        first_uncompleted_index = next((i for i, m in enumerate(milestones) if not m.is_completed), len(milestones))
+        for idx, milestone in enumerate(milestones):
+            if milestone.is_completed:
+                status = 'Completed'
+            elif idx == first_uncompleted_index:
+                status = 'In Progress'
+            else:
+                status = 'Upcoming'
+            roadmap_phases.append({
+                'title': milestone.title,
+                'description': milestone.description,
+                'status': status,
+            })
+
+    latest_resume = Resume.objects.filter(user=request.user).first()
+    tech_count = len(profile.technical_skills) if profile and profile.technical_skills else 0
+    soft_count = len(profile.soft_skills) if profile and profile.soft_skills else 0
+
+    if not profile or not profile.dream_role:
+        mission_title = "Define your dream role"
+        mission_text = "Add your career goals so recommendations can personalize your journey."
+        mission_progress = stat.profile_progress
+        mission_url = reverse('accounts:profile')
+    elif not latest_resume:
+        mission_title = "Build your resume"
+        mission_text = "Upload a resume to get AI feedback and improve your score."
+        mission_progress = min(stat.profile_progress, 50)
+        mission_url = reverse('resume_lab:index')
+    elif not roadmap:
+        mission_title = "Generate your roadmap"
+        mission_text = "Create a step-by-step career plan based on your profile and skills."
+        mission_progress = stat.career_readiness
+        mission_url = reverse('roadmap:index')
+    elif roadmap.completion_percentage < 100:
+        mission_title = "Advance your career roadmap"
+        mission_text = roadmap.current_phase or "Complete your next roadmap milestone."
+        mission_progress = roadmap.completion_percentage
+        mission_url = reverse('roadmap:index')
+    else:
+        mission_title = "Keep momentum"
+        mission_text = "Continue exploring career opportunities and AI insights."
+        mission_progress = min(stat.profile_progress, 100)
+        mission_url = reverse('opportunities:index')
+
+    ai_insights = [insight for insight in request.user.ai_insights.all() if not insight.is_sample()]
+    opportunities = [opp for opp in RecommendedOpportunity.objects.filter(user=request.user) if not opp.is_sample()]
+
     context = {
-        'stats': request.user.dashboard_stat,
-        'roadmap_phases': request.user.roadmap_phases.all(),
-        'ai_insights': request.user.ai_insights.all()[:3],
-        'opportunities': request.user.opportunities.all()[:3]
+        'stats': stat,
+        'roadmap': roadmap,
+        'roadmap_phases': roadmap_phases,
+        'roadmap_completion': roadmap_completion,
+        'ai_insights': ai_insights[:3],
+        'opportunities': opportunities[:3],
+        'recent_achievements': request.user.achievements.all()[:3],
+        'notifications': request.user.notifications.all()[:5],
+        'profile': profile,
+        'latest_resume': latest_resume,
+        'tech_count': tech_count,
+        'soft_count': soft_count,
+        'mission_title': mission_title,
+        'mission_text': mission_text,
+        'mission_progress': mission_progress,
+        'mission_url': mission_url,
     }
-    
+
     return render(request, 'dashboard/index.html', context)
+
+@login_required
+def get_notifications(request):
+    notifications = request.user.notifications.all().order_by('-created_at')[:10]
+    data = [{
+        'id': n.id,
+        'title': n.title,
+        'message': n.message,
+        'is_read': n.is_read,
+        'time_ago': n.created_at.strftime('%Y-%m-%d %H:%M')
+    } for n in notifications]
+    return JsonResponse({'success': True, 'notifications': data})
+
+@login_required
+def mark_notification_read(request, notification_id):
+    try:
+        n = Notification.objects.get(id=notification_id, user=request.user)
+        n.is_read = True
+        n.save()
+        return JsonResponse({'success': True})
+    except Notification.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Not found'})
+
+@login_required
+def global_search(request):
+    query = request.GET.get('q', '').lower()
+    if not query:
+        return JsonResponse({'success': True, 'results': []})
+        
+    results = []
+    
+    # Search Opportunities
+    opps = Opportunity.objects.filter(title__icontains=query) | Opportunity.objects.filter(company__icontains=query)
+    for opp in opps[:3]:
+        results.append({'type': 'Opportunity', 'title': opp.title, 'desc': opp.company, 'url': '/opportunities/'})
+        
+    # Search Achievements
+    achievements = request.user.achievements.filter(title__icontains=query)
+    for a in achievements[:3]:
+        results.append({'type': 'Achievement', 'title': a.title, 'desc': a.description, 'url': '/dashboard/'})
+        
+    return JsonResponse({'success': True, 'results': results})

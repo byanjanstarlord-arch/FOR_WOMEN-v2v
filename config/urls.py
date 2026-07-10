@@ -29,6 +29,7 @@ urlpatterns = [
     path('roadmap/', include('apps.roadmap.urls')),
     path('opportunities/', include('apps.opportunities.urls')),
     path('ai-mentor/', include('apps.ai_mentor.urls')),
+    path('achievements/', include('apps.achievements.urls')),
     path('', include('apps.core.urls')),
 ]
 

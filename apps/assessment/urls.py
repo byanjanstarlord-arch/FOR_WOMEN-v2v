@@ -4,6 +4,6 @@ from . import views
 app_name = 'assessment'
 
 urlpatterns = [
-    path('', views.index_view, name='index'),
-    path('api/analyze/', views.AssessmentAnalyzeView.as_view(), name='analyze'),
+    path('', views.index, name='index'),
+    path('submit/', views.submit_assessment, name='submit_assessment'),
 ]

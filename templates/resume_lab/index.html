@@ -810,15 +810,33 @@
                 <div class="file-check-badge">✔</div>
             </div>
             <div class="file-meta">
-                <h4 id="displayFileName">Ananya_Singh_Resume.pdf</h4>
-                <p id="displayUploadMeta">Uploaded on 12 May 2025 · 2.4 MB</p>
+                <h4 id="displayFileName">
+                    {% if resume %}
+                        {{ resume.file.name|slice:"15:"|default:"Uploaded_Resume.pdf" }}
+                    {% else %}
+                        No Resume Uploaded
+                    {% endif %}
+                </h4>
+                <p id="displayUploadMeta">
+                    {% if resume %}
+                        Uploaded on {{ resume.uploaded_at|date:"d M Y" }}
+                    {% else %}
+                        Please upload a PDF to begin
+                    {% endif %}
+                </p>
             </div>
         </div>
 
         <div class="file-info-group" style="gap: 2.5rem;">
             <div class="last-analyzed-group">
                 <span class="last-analyzed-title">Last Analyzed</span>
-                <span class="last-analyzed-value" id="displayLastAnalyzed">12 May 2025 at 10:30 AM</span>
+                <span class="last-analyzed-value" id="displayLastAnalyzed">
+                    {% if resume %}
+                        {{ resume.updated_at|date:"d M Y \a\t h:i A" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
             </div>
             
             <button class="btn-outline-violet" onclick="triggerReanalysis()" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 10px; gap: 6px;">
@@ -1058,87 +1076,27 @@
     let currentAnalysisData = null;
     let rawResumeText = ``;
 
-    // Static default mockup dataset
-    const mockupData = {
-        "ats_score": 72,
-        "score_breakdown": {
-            "format": 80,
-            "content": 70,
-            "skills": 65,
-            "experience": 75,
-            "keywords": 68
-        },
-        "strengths": [
-            "Good use of action verbs throughout your work history",
-            "Clear section organization and standard hierarchy",
-            "Relevant technical skills included (JavaScript, React, Node.js)",
-            "Education details are clear with a structured presentation"
-        ],
-        "improvements": [
-            "Add more achievements to make your career milestones stand out",
-            "Include more keywords specifically targeted at your target jobs",
-            "Improve skills section layout and categorization",
-            "Quantify your impact using numbers and percentages"
-        ],
-        "keyword_match": 68,
-        "target_role": "Software Engineer",
-        "suggestions": [
-            {
-                "title": "Add 3-4 more measurable achievements",
-                "description": "Include numbers and metrics to show impact (e.g., 'reduced page load by 15%').",
-                "impact": "High Impact"
-            },
-            {
-                "title": "Include more technical keywords",
-                "description": "Add relevant software keywords used in job descriptions (e.g. AWS, CI/CD).",
-                "impact": "Medium Impact"
-            },
-            {
-                "title": "Improve your skills section",
-                "description": "Organize skills by categories and proficiency to make scanning easier.",
-                "impact": "Medium Impact"
-            }
-        ],
-        "parsed_resume": {
-            "name": "ANANYA SINGH",
-            "role": "Software Developer",
-            "email": "ananya.singh@email.com",
-            "phone": "+91 98765 43210",
-            "location": "Bangalore, India",
-            "linkedin": "linkedin.com/in/ananyasingh",
-            "github": "github.com/ananyasingh",
-            "summary": "Motivated Computer Science student with strong programming skills and a passion for building innovative solutions. Experienced in developing responsive web applications and solving complex database queries.",
-            "skills": ["JavaScript", "Python", "Java", "React.js", "Node.js", "MongoDB", "MySQL", "Git", "HTML", "CSS"],
-            "experience": [
-                {
-                    "role": "Web Development Intern",
-                    "company": "Tech Solutions Pvt. Ltd.",
-                    "location": "Bangalore",
-                    "duration": "Nov 2024 - Jan 2025",
-                    "bullets": [
-                        "Developed and maintained responsive web applications using React.js and Node.js.",
-                        "Collaborated with the design team to implement user-friendly, responsive interface features.",
-                        "Optimized database queries in MySQL, reducing website load times by 15%."
-                    ]
-                }
-            ],
-            "education": [
-                {
-                    "degree": "Bachelor of Technology in Computer Science",
-                    "institution": "ABC Institute of Technology",
-                    "duration": "2021 - 2025",
-                    "gpa": "8.5 CGPA"
-                }
-            ]
-        }
-    };
+    let mockupData = null;
+    try {
+        mockupData = {{ resume_json|safe }};
+    } catch(e) {
+        console.error("Failed to load resume data", e);
+    }
 
-    // Initialize Page with Default Mockup State
+    // Initialize Page with DB State
     document.addEventListener("DOMContentLoaded", () => {
-        // Build initial text from mockupData for reanalysis fallback
-        rawResumeText = `${mockupData.parsed_resume.name}\n${mockupData.parsed_resume.role}\n${mockupData.parsed_resume.email} | ${mockupData.parsed_resume.phone} | ${mockupData.parsed_resume.location}\n\nSUMMARY\n${mockupData.parsed_resume.summary}\n\nSKILLS\n${mockupData.parsed_resume.skills.join(', ')}\n\nEXPERIENCE\n${mockupData.parsed_resume.experience.map(e => `${e.role} at ${e.company} (${e.duration})\n` + e.bullets.map(b => `- ${b}`).join('\n')).join('\n')}\n\nEDUCATION\n${mockupData.parsed_resume.education.map(ed => `${ed.degree} - ${ed.institution} (${ed.duration}) - ${ed.gpa}`).join('\n')}`;
-
-        updateDashboardUI(mockupData);
+        if (mockupData) {
+            // Build initial text from mockupData for reanalysis fallback
+            try {
+                if (mockupData.parsed_resume && mockupData.parsed_resume.name) {
+                    let exp = (mockupData.parsed_resume.experience || []).map(e => `${e.role} at ${e.company} (${e.duration})\n` + (e.bullets || []).map(b => `- ${b}`).join('\n')).join('\n');
+                    let edu = (mockupData.parsed_resume.education || []).map(ed => `${ed.degree} - ${ed.institution} (${ed.duration}) - ${ed.gpa}`).join('\n');
+                    let skills = (mockupData.parsed_resume.skills || []).join(', ');
+                    rawResumeText = `${mockupData.parsed_resume.name}\n${mockupData.parsed_resume.role}\n${mockupData.parsed_resume.email} | ${mockupData.parsed_resume.phone} | ${mockupData.parsed_resume.location}\n\nSUMMARY\n${mockupData.parsed_resume.summary}\n\nSKILLS\n${skills}\n\nEXPERIENCE\n${exp}\n\nEDUCATION\n${edu}`;
+                }
+            } catch(e) { console.error(e); }
+            updateDashboardUI(mockupData);
+        }
     });
 
     // Helper to trigger file selector click
@@ -1188,48 +1146,35 @@
         updateLoadingTip("Uploading and parsing file content...");
 
         try {
-            let extractedText = "";
-            if (file.type === "application/pdf") {
-                extractedText = await extractTextFromPDF(file);
-            } else if (file.type === "text/plain") {
-                extractedText = await readFileAsText(file);
-            } else {
-                // For other files, use a default fallback or read as text
-                extractedText = await readFileAsText(file).catch(() => "");
-                if (!extractedText) {
-                    extractedText = "Uploaded file: " + file.name + "\nContent simulation for " + file.name;
-                }
-            }
+            const formData = new FormData();
+            formData.append('resume', file);
 
-            rawResumeText = extractedText;
-            
-            updateLoadingTip("Analyzing resume content with HerSakhi AI...");
+            updateLoadingTip("Uploading and analyzing resume with HerSakhi AI...");
 
-            // Send extracted text to Django API backend
-            const response = await fetch("{% url 'resume_lab:analyze' %}", {
+            // Send file to Django API backend
+            const response = await fetch("{% url 'resume_lab:upload_resume' %}", {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
-                body: JSON.stringify({ resume_text: extractedText })
+                body: formData
             });
 
             const result = await response.json();
             
-            if (result.success && result.data) {
+            if (result.success && result.analysis) {
                 // Update file status labels
                 document.getElementById('displayFileName').innerText = name;
                 document.getElementById('displayUploadMeta').innerText = `Uploaded on ${dateStr} · ${sizeStr}`;
                 document.getElementById('displayLastAnalyzed').innerText = `${dateStr} at ${formatTime(now)}`;
 
-                updateDashboardUI(result.data);
+                updateDashboardUI(result.analysis);
             } else {
-                alert("AI Analysis failed. Showing dynamic local analysis instead.");
+                showToast("AI Analysis failed. " + (result.message || ""), "error");
             }
-        } catch (e) {
-            console.error("Analysis error:", e);
-            alert("Error analyzing resume. Please make sure the format is valid.");
+        } catch (error) {
+            console.error("Upload error:", error);
+            showToast("Error analyzing resume. Please make sure the format is valid.", "error");
         } finally {
             showLoading(false);
         }
@@ -1263,41 +1208,11 @@
         return fullText;
     }
 
-    // Trigger reanalysis with existing file text
+    // Trigger reanalysis with existing file text (Disabled for now, needs backend support)
     async function triggerReanalysis() {
-        if (!rawResumeText) {
-            alert("No resume text available to re-analyze. Please upload a file first.");
+        if (!currentAnalysisData) {
+            showToast("Please upload a resume to re-analyze.", "error");
             return;
-        }
-
-        showLoading(true);
-        updateLoadingTip("AI is re-analyzing your resume metrics...");
-
-        try {
-            const response = await fetch("{% url 'resume_lab:analyze' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({ resume_text: rawResumeText })
-            });
-
-            const result = await response.json();
-            
-            if (result.success && result.data) {
-                const now = new Date();
-                const dateStr = formatDate(now);
-                document.getElementById('displayLastAnalyzed').innerText = `${dateStr} at ${formatTime(now)}`;
-                updateDashboardUI(result.data);
-            } else {
-                alert("AI Re-analysis failed.");
-            }
-        } catch (e) {
-            console.error("Re-analysis error:", e);
-            alert("Error re-analyzing resume.");
-        } finally {
-            showLoading(false);
         }
     }
 
@@ -1447,6 +1362,17 @@
         const c = document.getElementById(containerId);
         if (!c) return;
 
+        if (!parsed || !parsed.name) {
+            c.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-light); text-align: center; padding: 4rem 2rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem; opacity: 0.5;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <h3 style="margin: 0 0 0.5rem; color: var(--text-dark);">No Resume Available</h3>
+                    <p style="margin: 0; font-size: 0.9rem;">Upload your resume to instantly see an AI-generated preview of its parsed content.</p>
+                </div>
+            `;
+            return;
+        }
+
         let expHTML = "";
         (parsed.experience || []).forEach(e => {
             let bulletsHTML = "";
@@ -1457,12 +1383,12 @@
             expHTML += `
                 <div class="resume-exp-item">
                     <div class="resume-exp-title-row">
-                        <span>${e.role}</span>
-                        <span class="resume-exp-company">${e.company}</span>
+                        <span>${e.role || ''}</span>
+                        <span class="resume-exp-company">${e.company || ''}</span>
                     </div>
                     <div class="resume-exp-meta-row">
-                        <span>${e.location}</span>
-                        <span>${e.duration}</span>
+                        <span>${e.location || ''}</span>
+                        <span>${e.duration || ''}</span>
                     </div>
                     <ul class="resume-exp-bullets">
                         ${bulletsHTML}
@@ -1476,11 +1402,11 @@
             eduHTML += `
                 <div class="resume-exp-item">
                     <div class="resume-exp-title-row">
-                        <span>${ed.degree}</span>
-                        <span>${ed.duration}</span>
+                        <span>${ed.degree || ''}</span>
+                        <span>${ed.duration || ''}</span>
                     </div>
                     <div class="resume-exp-meta-row">
-                        <span>${ed.institution}</span>
+                        <span>${ed.institution || ''}</span>
                         <span>${ed.gpa || ''}</span>
                     </div>
                 </div>
@@ -1494,14 +1420,14 @@
 
         c.innerHTML = `
             <div class="resume-name-header">
-                <h2>${parsed.name || 'ANANYA SINGH'}</h2>
-                <div class="resume-role-sub">${parsed.role || 'Software Developer'}</div>
+                <h2>${parsed.name || ''}</h2>
+                ${parsed.role ? `<div class="resume-role-sub">${parsed.role}</div>` : ''}
                 <div class="resume-contact-info">
-                    <span>${parsed.email || 'ananya.singh@email.com'}</span>
-                    <span>•</span>
-                    <span>${parsed.phone || '+91 98765 43210'}</span>
-                    <span>•</span>
-                    <span>${parsed.location || 'Bangalore, India'}</span>
+                    ${parsed.email ? `<span>${parsed.email}</span>` : ''}
+                    ${parsed.email && parsed.phone ? `<span>•</span>` : ''}
+                    ${parsed.phone ? `<span>${parsed.phone}</span>` : ''}
+                    ${(parsed.email || parsed.phone) && parsed.location ? `<span>•</span>` : ''}
+                    ${parsed.location ? `<span>${parsed.location}</span>` : ''}
                 </div>
                 <div class="resume-contact-info" style="margin-top: 4px; justify-content: center;">
                     ${parsed.linkedin ? `<span>${parsed.linkedin}</span>` : ''}
@@ -1544,9 +1470,9 @@
     }
 
     // Download Report triggered by button
-    function downloadReport() {
-        if (!currentAnalysisData) {
-            alert("No analysis details to report. Please upload a resume first.");
+    function showDetailedAnalysisModal() {
+        if (!currentAnalysisData || !currentAnalysisData.ai_analysis) {
+            showToast("No analysis details to report. Please upload a resume first.", "error");
             return;
         }
 

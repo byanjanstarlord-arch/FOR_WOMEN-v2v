@@ -4,6 +4,6 @@ from . import views
 app_name = 'skill_gap'
 
 urlpatterns = [
-    path('', views.index_view, name='index'),
-    path('api/analyze/', views.SkillGapAnalyzeView.as_view(), name='analyze'),
+    path('', views.index, name='index'),
+    path('analyze/', views.analyze_gap, name='analyze'),
 ]

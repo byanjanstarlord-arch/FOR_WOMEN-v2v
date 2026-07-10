@@ -512,7 +512,7 @@
                     <p style="color: var(--text-light); margin: 0; font-size: 0.95rem;">Discover and apply to the best opportunities tailored for your career goals.</p>
                 </div>
                 <div style="display: flex; gap: 0.75rem;">
-                    <button class="set-alerts-btn" onclick="alert('Opportunities alerts configured! We will notify you of matches.')">
+                    <button class="set-alerts-btn" onclick="showToast('Opportunities alerts configured! We will notify you of matches.', 'success')">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                         Set Alerts
                     </button>
@@ -585,7 +585,7 @@
                     <!-- Dynamic recommended opportunities -->
                 </div>
 
-                <button class="explore-all-btn" onclick="alert('Exploring more opportunities hubs...')">
+                <button class="explore-all-btn" onclick="showToast('Exploring more opportunities hubs...', 'success')">
                     Explore More Opportunities →
                 </button>
             </div>
@@ -680,7 +680,7 @@
                 <div class="saved-list-sidebar" id="saved-sidebar-list">
                     <!-- Dynamic saved list -->
                 </div>
-                <button class="view-all-saved-sidebar-btn" onclick="alert('Viewing all saved opportunities...')">
+                <button class="view-all-saved-sidebar-btn" onclick="showToast('Viewing all saved opportunities...', 'success')">
                     View All Saved
                 </button>
             </div>
@@ -808,13 +808,9 @@
     function applyJob(jobId) {
         if (!oppData) return;
         const job = oppData.recommended.find(j => j.id === jobId);
-        if (!job || job.applied) return;
-
-        job.applied = true;
-        oppData.metrics.applied += 1;
-        
-        alert(`Successfully applied to ${job.title} at ${job.company}!`);
-        
+        if (job) {
+            showToast(`Successfully applied to ${job.title} at ${job.company}!`, 'success');
+        }
         renderOpps(oppData);
         saveStateToDB();
     }
@@ -825,7 +821,7 @@
         const preferences = document.getElementById('inputPreferences').value;
 
         if (!skills) {
-            alert("Please enter your skills.");
+            showToast("Please enter your skills.", "error");
             return;
         }
 
@@ -850,10 +846,10 @@
                 oppData = resData.data;
                 renderOpps(oppData);
             } else {
-                alert("AI matching failed: " + resData.message);
+                showToast("AI matching failed: " + resData.message, "error");
             }
         } catch(e) {
-            alert("Network error: Failed to connect to opportunities service.");
+            showToast("Network error: Failed to connect to opportunities service.", "error");
         } finally {
             document.getElementById('loading-overlay-generation').style.display = 'none';
         }

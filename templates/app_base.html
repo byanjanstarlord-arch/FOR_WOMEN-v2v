@@ -53,11 +53,11 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8l-3.5 8M12 8l3.5 8M9.5 14h5"/></svg>
                 AI Mentor
             </a>
-            <a href="#" class="nav-item">
+            <a href="{% url 'achievements:index' %}" class="nav-item {% if '/achievements/' in request.path %}active{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m12 8 1.5 3.5H17l-3 2 1 3.5-3-2-3 2 1-3.5-3-2h3.5z"/></svg>
                 Achievements
             </a>
-            <a href="#" class="nav-item">
+            <a href="{% url 'accounts:profile' %}" class="nav-item {% if '/profile/' in request.path %}active{% endif %}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 Profile
             </a>
@@ -130,25 +130,30 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                     <span class="badge">3</span>
                 </a>
-                <div class="header__profile">
-                    <div class="header__profile-avatar">
-                        {% if user.first_name or user.last_name %}
-                            {{ user.first_name|slice:":1"|upper }}{% if user.last_name %}{{ user.last_name|slice:":1"|upper }}{% endif %}
-                        {% else %}
-                            {{ user.username|slice:":2"|upper }}
-                        {% endif %}
-                    </div>
-                    <div class="header__profile-info">
-                        <span class="header__profile-name">
+                <div class="header__profile-wrapper">
+                    <div class="header__profile" id="profileMenuToggle" role="button" aria-haspopup="true" aria-expanded="false">
+                        <div class="header__profile-avatar">
                             {% if user.first_name or user.last_name %}
-                                {{ user.first_name }}{% if user.last_name %} {{ user.last_name }}{% endif %}
+                                {{ user.first_name|slice:":1"|upper }}{% if user.last_name %}{{ user.last_name|slice:":1"|upper }}{% endif %}
                             {% else %}
-                                {{ user.username }}
+                                {{ user.username|slice:":2"|upper }}
                             {% endif %}
-                        </span>
-                        <span class="header__profile-role">Student</span>
+                        </div>
+                        <div class="header__profile-info">
+                            <span class="header__profile-name">
+                                {% if user.first_name or user.last_name %}
+                                    {{ user.first_name }}{% if user.last_name %} {{ user.last_name }}{% endif %}
+                                {% else %}
+                                    {{ user.username }}
+                                {% endif %}
+                            </span>
+                            <span class="header__profile-role">Student</span>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
                     </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    <div class="header__profile-menu" id="profileMenu" hidden>
+                        <a class="profile-menu-item" href="{% url 'accounts:logout' %}">Logout</a>
+                    </div>
                 </div>
             </div>
         </header>
@@ -157,6 +162,85 @@
         {% endblock %}
     </main>
     
+    <!-- Toast Container -->
+    <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px;"></div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.getElementById('profileMenuToggle');
+            const menu = document.getElementById('profileMenu');
+
+            if (toggle && menu) {
+                toggle.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    const visible = !menu.classList.contains('visible');
+                    if (visible) {
+                        menu.classList.add('visible');
+                        menu.removeAttribute('hidden');
+                        toggle.setAttribute('aria-expanded', 'true');
+                    } else {
+                        menu.classList.remove('visible');
+                        menu.setAttribute('hidden', '');
+                        toggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                menu.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+
+                document.addEventListener('click', function(event) {
+                    if (menu.classList.contains('visible') && !menu.contains(event.target) && event.target !== toggle && !toggle.contains(event.target)) {
+                        menu.classList.remove('visible');
+                        menu.setAttribute('hidden', '');
+                        toggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && menu && menu.classList.contains('visible')) {
+                    menu.classList.remove('visible');
+                    menu.setAttribute('hidden', '');
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+        });
+
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.style.padding = '14px 20px';
+            toast.style.borderRadius = '10px';
+            toast.style.color = 'white';
+            toast.style.fontWeight = '600';
+            toast.style.fontSize = '0.9rem';
+            toast.style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
+            toast.style.animation = 'slideUpModal 0.3s ease';
+            toast.style.display = 'flex';
+            toast.style.alignItems = 'center';
+            toast.style.gap = '10px';
+            
+            if (type === 'error') {
+                toast.style.background = '#EF4444';
+                toast.innerHTML = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> <span>${message}</span>`;
+            } else if (type === 'success') {
+                toast.style.background = '#22C55E';
+                toast.innerHTML = `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> <span>${message}</span>`;
+            } else {
+                toast.style.background = 'var(--accent-violet)';
+                toast.innerHTML = `<span>${message}</span>`;
+            }
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>
