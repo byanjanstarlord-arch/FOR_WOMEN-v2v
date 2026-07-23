@@ -1,38 +1,39 @@
-# HerSakhi - AI Career Companion
+# HerSakhi – AI Career Companion
 
-HerSakhi is a comprehensive, AI-driven career companion for women, integrating career roadmap generation, resume analysis, skill gap tracking, and AI mentorship.
+HerSakhi is an AI-powered career development platform designed to help women plan, grow, and achieve their professional goals through personalized guidance, intelligent analysis, and modern user experience.
 
-## Features
-- **Premium UI/UX:** Built with Three.js, GSAP, and a custom glassmorphism design system.
-- **Centralized AI:** Integrated OpenRouter support with fallback mechanisms.
-- **Django Monolith:** Robust backend serving customized templates and robust REST APIs.
+## ✨ Key Features
+- AI-powered career roadmap generation
+- Resume analysis and improvement suggestions
+- Skill gap detection and learning recommendations
+- AI mentorship and career guidance
+- Modern premium UI built with Three.js, GSAP, and glassmorphism
+- Django backend with REST APIs
+- Modular AI service layer with OpenRouter integration
 
-## Environment Setup
+## 🛠 Tech Stack
+- Backend: Django, Django REST Framework
+- Frontend: HTML, CSS, JavaScript, Three.js, GSAP
+- AI: OpenRouter
+- Database: SQLite/PostgreSQL
 
-1. **Install Python dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+## 🚀 Getting Started
+```bash
+pip install -r requirements.txt
+cp .env.example .env
+python manage.py migrate
+python manage.py runserver
+```
+Open http://localhost:8000.
 
-2. **Environment Variables:**
-   Copy `.env.example` to `.env` and fill in your actual credentials.
-   ```bash
-   cp .env.example .env
-   ```
-   *Note: The application is environment-driven. Ensure `DATABASE_URL` and `OPENROUTER_API_KEY` are set.*
+## 📁 Project Structure
+- `templates/` – HTML templates
+- `static/` – CSS, JS, images, assets
+- `ai/` – AI service modules
+- `manage.py` – Django entry point
 
-3. **Database Migration:**
-   Apply database migrations.
-   ```bash
-   python manage.py migrate
-   ```
+## 🔐 Environment
+Configure required variables in `.env`, including `DATABASE_URL` and `OPENROUTER_API_KEY`.
 
-4. **Running the Development Server:**
-   Start the Django development server.
-   ```bash
-   python manage.py runserver
-   ```
-   The site will be available at `http://localhost:8000/`.
-
-## Architecture Note
-The project uses a monolithic Django architecture. Frontend assets (HTML, CSS, JS, Three.js models) are stored natively within the `templates` and `static` directories and served by Django, completely eliminating the need for a separate node frontend. The AI services are heavily modularized in the `ai/` package, and all AI features communicate through Django REST Framework endpoints.
+## 📄 License
+This project is intended for educational, research, and hackathon purposes unless otherwise specified.
